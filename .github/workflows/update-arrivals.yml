@@ -1,7 +1,8 @@
 name: Update Haneda arrivals
 on:
   schedule:
-    - cron: '15 */2 * * *'
+    - cron: '15 */2 * * *' # private repository: keep within the free allowance
+    - cron: '*/10 * * * *' # public repository: standard runners are free
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,6 +12,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   update:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.repository.private && github.event.schedule == '15 */2 * * *') ||
+      (!github.event.repository.private && github.event.schedule == '*/10 * * * *')
     runs-on: ubuntu-24.04
     timeout-minutes: 4
     steps:
