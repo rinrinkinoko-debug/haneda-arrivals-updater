@@ -1,0 +1,21 @@
+name: Update Haneda arrivals
+on:
+  schedule:
+    - cron: '15 */2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: haneda-arrivals
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser client
+        run: npm install --no-save --no-package-lock playwright-core@1.56.1
+      - name: Read official arrivals and update the calendar
+        run: node scrape.mjs
