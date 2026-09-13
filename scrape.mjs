@@ -26,11 +26,12 @@ async function scrape(date, kind) {
       if (onDate && onDate !== target) return null;
       const time = text(on?.querySelector('.flight-card__time__value__time'));
       const changedTime = text(changed?.querySelector('.flight-card__time__value__time'));
+      const changedDate = text(changed?.querySelector('.flight-card__time__value__date'));
       const numbers = [...a.querySelectorAll('.flight-card__airline__item')].map(text).filter(Boolean);
       const href = a.getAttribute('href');
       const code = new URL(href, base).searchParams.get('flightNumber');
       const exitRow = [...a.querySelectorAll('dl')].find(dl => text(dl.querySelector('dt')) === '出口');
-      return { id: code, origin: text(a.querySelector('.flight-card__purpose__item:not(.flight-card__purpose__item--hnd)')), time, ...(changedTime && changedTime !== time ? { changedTime } : {}), terminal: text(a.querySelector('.terminal-tag')).replace(/^T/, '') || '?', exit: text(exitRow?.querySelector('dd')).replace(/^[-－]$/, ''), flights: numbers.join(' / '), status: text(a.querySelector('.flight-status')), link: new URL(href, base).href };
+      return { id: code, origin: text(a.querySelector('.flight-card__purpose__item:not(.flight-card__purpose__item--hnd)')), time, ...(changedTime && changedTime !== time ? { changedTime, ...(changedDate && changedDate !== onDate ? { changedDate } : {}) } : {}), terminal: text(a.querySelector('.terminal-tag')).replace(/^T/, '') || '?', exit: text(exitRow?.querySelector('dd')).replace(/^[-－]$/, ''), flights: numbers.join(' / '), status: text(a.querySelector('.flight-status')), link: new URL(href, base).href };
     }).filter(Boolean);
   }, { date, base: BASE });
   const deduped = [...new Map(flights.map(f => [f.id, f])).values()];
