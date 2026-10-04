@@ -1,0 +1,6 @@
+name = "haneda-arrivals-dispatcher"
+main = "worker.js"
+compatibility_date = "2026-10-04"
+
+[triggers]
+crons = ["*/10 * * * *"]
