@@ -6,6 +6,21 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true, args:
 const page = await browser.newPage({ locale: 'ja-JP', timezoneId: 'Asia/Tokyo' });
 const now = new Date();
 const dateAt = offset => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(now.getTime() + offset * 86400000));
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function withRetry(label, action, attempts = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await action();
+    } catch (error) {
+      lastError = error;
+      console.error(`${label}: attempt ${attempt}/${attempts} failed`, error);
+      if (attempt < attempts) await wait(attempt * 5000);
+    }
+  }
+  throw lastError;
+}
 
 async function scrape(date, kind) {
   const path = kind === 'dom' ? 'dms_search.html' : 'int_search.html';
@@ -51,11 +66,13 @@ try {
   // The airport's daily search is available near the date, not indefinitely in advance.
   for (const date of [dateAt(0), dateAt(1)]) {
     for (const kind of ['dom', 'intl']) {
-      const snapshot = await scrape(date, kind);
-      const token = await oidcToken();
-      const response = await fetch(INGEST, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(snapshot) });
-      if (!response.ok) throw new Error(`Ingest ${date}/${kind}: ${response.status} ${(await response.text()).slice(0,200)}`);
-      console.log(`${date} ${kind}: ${snapshot.flights.length} flights`);
+      await withRetry(`${date} ${kind}`, async () => {
+        const snapshot = await scrape(date, kind);
+        const token = await oidcToken();
+        const response = await fetch(INGEST, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(snapshot) });
+        if (!response.ok) throw new Error(`Ingest ${date}/${kind}: ${response.status} ${(await response.text()).slice(0,200)}`);
+        console.log(`${date} ${kind}: ${snapshot.flights.length} flights`);
+      });
     }
   }
 } finally { await browser.close(); }
