@@ -38,7 +38,8 @@ async function scrape(date, kind) {
       const on = a.querySelector('.flight-card__time__value--on');
       const changed = a.querySelector('.flight-card__time__value--change');
       const onDate = text(on?.querySelector('.flight-card__time__value__date'));
-      if (onDate && onDate !== target) return null;
+      const normalizedOnDate = onDate.replace(/^\d{4}\//, '');
+      if (normalizedOnDate && normalizedOnDate !== target) return null;
       const time = text(on?.querySelector('.flight-card__time__value__time'));
       const changedTime = text(changed?.querySelector('.flight-card__time__value__time'));
       const changedDate = text(changed?.querySelector('.flight-card__time__value__date'));
