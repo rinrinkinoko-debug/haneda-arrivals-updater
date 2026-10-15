@@ -1,7 +1,7 @@
 name: Update Haneda arrivals backup
 on:
   schedule:
-    - cron: '17,37,57 * * * *'
+    - cron: '18,38,58 * * * *'
   workflow_dispatch:
 permissions:
   contents: read
