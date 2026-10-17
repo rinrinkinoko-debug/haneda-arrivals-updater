@@ -1,0 +1,13 @@
+services:
+  - type: cron
+    name: haneda-arrivals-dispatcher
+    runtime: node
+    plan: 0.5c-512mb
+    region: singapore
+    schedule: "3,13,23,33,43,53 * * * *"
+    buildCommand: "node --version"
+    startCommand: "node render-dispatcher.mjs"
+    autoDeployTrigger: commit
+    envVars:
+      - key: GITHUB_TOKEN
+        sync: false
