@@ -3,7 +3,13 @@ const REPO = 'haneda-arrivals-updater';
 const WORKFLOW = 'update-arrivals.yml';
 const API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}`;
 const FRESH_MS = 8 * 60 * 1000;
+const HARD_TIMEOUT_MS = 60 * 1000;
 const token = process.env.GITHUB_TOKEN;
+
+setTimeout(() => {
+  console.error(JSON.stringify({ state: 'hard_timeout', timeout_ms: HARD_TIMEOUT_MS }));
+  process.exit(1);
+}, HARD_TIMEOUT_MS).unref();
 
 if (!token) {
   console.log(JSON.stringify({ state: 'configuration_pending', missing: 'GITHUB_TOKEN' }));
